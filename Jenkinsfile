@@ -11,19 +11,11 @@ pipeline {
                 }
             }
             steps {
-                // Get some code from a GitHub repository
                 git 'https://github.com/mabayhan/sonarqubejava'
-
-                // Run Maven on a Unix agent.
                 sh 'mvn -Dmaven.test.failure.ignore=true clean package'
-
-            // To run Maven on a Windows agent, use
-            // bat "mvn -Dmaven.test.failure.ignore=true clean package"
             }
 
             post {
-                // If Maven was able to run the tests, even if some of the test
-                // failed, record the test results and archive the jar file.
                 success {
                     junit '**/target/surefire-reports/TEST-*.xml'
                     archiveArtifacts 'tests/target/*.jar'
@@ -32,16 +24,34 @@ pipeline {
         }
 
         stage('Static Code Analysis') {
+            // docker:start
+            // agent {
+            //     docker {
+            //         image 'sonarsource/sonar-scanner-cli'
+            //     }
+            // }
+            // steps {
+            //     withSonarQubeEnv('cicd') {
+            //         echo '################# MAVEN ###################'
+            //         sh 'sonar-scanner -Dsonar.projectKey=sonarqubejava:multimodule -Dsonar.sources=. -Dsonar.java.binaries=.'
+            //     }
+            // }
+            // docker:end
+
+            // maven:start
             agent {
                 docker {
-                    image 'sonarsource/sonar-scanner-cli'
+                    image "${MAVEN_IMAGE}"
                 }
             }
+
             steps {
-                withSonarQubeEnv('cicd') {
-                    sh 'sonar-scanner -Dsonar.projectKey=sonarqubejava:multimodule -Dsonar.sources=. -Dsonar.java.binaries=.'
+                withSonarQubeEnv('SonarQube Server') {
+                    echo '################# MAVEN ###################'
+                    sh 'mvn sonar:sonar'
                 }
             }
+        // maven:end
         }
     }
 }
