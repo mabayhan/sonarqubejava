@@ -46,7 +46,7 @@ pipeline {
             }
 
             steps {
-                withSonarQubeEnv('SonarQube Server') {
+                withSonarQubeEnv('cicd') {
                     echo '################# MAVEN ###################'
                     sh 'mvn sonar:sonar'
                 }
